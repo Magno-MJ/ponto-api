@@ -1,4 +1,5 @@
 import { SignInController } from '.';
+import { MissingParamError } from '../errors/missing-param-error';
 
 interface SutTypes {
 	sut: SignInController
@@ -20,9 +21,7 @@ describe('SignInController', () => {
 		const response = await sut.handle(httpRequest);
 
 		expect(response.statusCode).toBe(400);
-		expect(response.body).toEqual({
-			message: 'Email is required'
-		});
+		expect(response.body).toEqual(new MissingParamError('email'));
 	});
 
 	it('should return 400 if no password is provided', async () => {
@@ -36,8 +35,6 @@ describe('SignInController', () => {
 		const response = await sut.handle(httpRequest);
 
 		expect(response.statusCode).toBe(400);
-		expect(response.body).toEqual({
-			message: 'Password is required'
-		});
+		expect(response.body).toEqual(new MissingParamError('password'));
 	});
 });
