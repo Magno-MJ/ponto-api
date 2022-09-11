@@ -145,6 +145,6 @@ describe('SignInController', () => {
 		await sut.handle(httpRequest);
 
 		expect(signInSpy).toHaveBeenCalledTimes(1);
-		expect(signInSpy).toHaveBeenCalledWith('fake-mail@mail.com','fake-password');
+		expect(signInSpy).toHaveBeenCalledWith({email: 'fake-mail@mail.com', password: 'fake-password'});
 	});
 });

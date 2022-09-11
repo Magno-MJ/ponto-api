@@ -28,7 +28,7 @@ export class SignInController implements Controller {
 				return badRequest(new InvalidParamError('email'));
 			}
 
-			this.signInUseCase.signIn(email, password);
+			this.signInUseCase.signIn({email, password});
 		} catch(e) {
 			return serverError();
 		}
