@@ -1,4 +1,7 @@
 import { SignInController } from '.';
+import { AuthenticatedUserDTO } from '../../domain/use-cases/sign-in/dtos/authenticated-user-dto';
+import { UserDTO } from '../../domain/use-cases/sign-in/dtos/user-dto';
+import { SignIn } from '../../domain/use-cases/sign-in/sign-in';
 import { InternalServerError } from '../errors/internal-server-error';
 import { InvalidParamError } from '../errors/invalid-param-error';
 import { MissingParamError } from '../errors/missing-param-error';
@@ -7,6 +10,7 @@ import { EmailValidator } from './protocols/email-validator';
 interface SutTypes {
 	sut: SignInController
 	emailValidatorStub: EmailValidator
+	signInUseCaseStub: SignIn
 }
 
 function makeEmailValidatorStub(): EmailValidator {
@@ -18,10 +22,31 @@ function makeEmailValidatorStub(): EmailValidator {
 
 	return new EmailValidatorStub();
 }
+
+function makeSignInUseCaseStub(): SignIn {
+	class SignInUseCaseStub implements SignIn {
+		async signIn(userData: UserDTO): Promise<AuthenticatedUserDTO> {
+			return Promise.resolve({
+				id: 'fake-id',
+				name: 'fake-name',
+				email: 'fake-mail@mail.com',
+				created_at: 'fake-date',
+				token: 'fake-token',
+				refresh_token: 'fake-refresh-token'
+			});
+		}
+
+	}
+
+	return new SignInUseCaseStub();
+}
+
 function makeSut(): SutTypes {
 	const emailValidatorStub: EmailValidator = makeEmailValidatorStub();
-	const sut = new SignInController(emailValidatorStub);
-	return { sut, emailValidatorStub };
+	const signInUseCaseStub: SignIn = makeSignInUseCaseStub();
+	const sut = new SignInController(emailValidatorStub, signInUseCaseStub);
+
+	return { sut, emailValidatorStub, signInUseCaseStub };
 }
 
 describe('SignInController', () => {
@@ -103,5 +128,23 @@ describe('SignInController', () => {
 
 		expect(response.statusCode).toBe(500);
 		expect(response.body).toEqual(new InternalServerError());
+	});
+
+	it('should call SignInUseCase with correct values', async () => {
+		const { sut, signInUseCaseStub } = makeSut();
+
+		const signInSpy = jest.spyOn(signInUseCaseStub, 'signIn');
+
+		const httpRequest = {
+			body: {
+				email: 'fake-mail@mail.com',
+				password: 'fake-password'
+			}
+		};
+
+		await sut.handle(httpRequest);
+
+		expect(signInSpy).toHaveBeenCalledTimes(1);
+		expect(signInSpy).toHaveBeenCalledWith('fake-mail@mail.com','fake-password');
 	});
 });
