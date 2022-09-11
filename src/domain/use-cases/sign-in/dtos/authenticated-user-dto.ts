@@ -3,6 +3,6 @@ export interface AuthenticatedUserDTO {
   name: string
   email: string
   created_at: string
-  toke: string
+  token: string
   refresh_token: string
 }

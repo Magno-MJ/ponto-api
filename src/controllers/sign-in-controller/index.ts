@@ -1,3 +1,4 @@
+import { SignIn } from '../../domain/use-cases/sign-in/sign-in';
 import { InvalidParamError } from '../errors/invalid-param-error';
 import { MissingParamError } from '../errors/missing-param-error';
 import { badRequest } from '../helpers/bad-request';
@@ -8,7 +9,7 @@ import { HttpResponse } from '../protocols/httpResponse';
 import { EmailValidator } from './protocols/email-validator';
 
 export class SignInController implements Controller {
-	constructor(private readonly emailValidator: EmailValidator) {}	
+	constructor(private readonly emailValidator: EmailValidator, private readonly signInUseCase: SignIn) {}	
 	async handle(httpRequest: HttpRequest): Promise<HttpResponse> {
 		try {
 			const requiredFields = ['email', 'password'];
@@ -26,6 +27,8 @@ export class SignInController implements Controller {
 			if(!emailIsValid) {
 				return badRequest(new InvalidParamError('email'));
 			}
+
+			this.signInUseCase.signIn(email, password);
 		} catch(e) {
 			return serverError();
 		}
