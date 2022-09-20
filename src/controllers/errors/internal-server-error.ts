@@ -1,6 +1,8 @@
 export class InternalServerError extends Error {
+	readonly statusCode: number;
 	constructor() {
-		super('Internal Server Error');
+		super('internal server error');
 		this.name = 'InternalServerError';
+		this.statusCode = 500;
 	}
 }

@@ -1,8 +1,7 @@
 import { SignIn } from '../../domain/use-cases/sign-in/sign-in';
 import { InvalidParamError } from '../errors/invalid-param-error';
 import { MissingParamError } from '../errors/missing-param-error';
-import { badRequest } from '../helpers/bad-request';
-import { serverError } from '../helpers/server-error';
+import { error } from '../helpers/error';
 import { Controller } from '../protocols/controller';
 import { HttpRequest } from '../protocols/httpRequest';
 import { HttpResponse } from '../protocols/httpResponse';
@@ -16,7 +15,7 @@ export class SignInController implements Controller {
 
 			for (const field of requiredFields) {
 				if (!httpRequest.body[field]) {
-					return badRequest(new MissingParamError(field));
+					throw new MissingParamError(field);
 				}
 			}
 
@@ -25,13 +24,14 @@ export class SignInController implements Controller {
 			const emailIsValid = this.emailValidator.validate(email);
 
 			if(!emailIsValid) {
-				return badRequest(new InvalidParamError('email'));
+				throw new InvalidParamError('email');
 			}
 
-			this.signInUseCase.signIn({email, password});
-		} catch(e) {
-			return serverError();
+			const authenticatedUser = await this.signInUseCase.signIn({ email, password });
+
+			return authenticatedUser;
+		} catch(err) {
+			return error(err);
 		}
-		
 	}
 }

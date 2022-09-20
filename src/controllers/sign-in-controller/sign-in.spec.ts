@@ -3,8 +3,6 @@ import { AuthenticatedUserDTO } from '../../domain/use-cases/sign-in/dtos/authen
 import { UserDTO } from '../../domain/use-cases/sign-in/dtos/user-dto';
 import { SignIn } from '../../domain/use-cases/sign-in/sign-in';
 import { InternalServerError } from '../errors/internal-server-error';
-import { InvalidParamError } from '../errors/invalid-param-error';
-import { MissingParamError } from '../errors/missing-param-error';
 import { EmailValidator } from './protocols/email-validator';
 
 interface SutTypes {
@@ -61,7 +59,7 @@ describe('SignInController', () => {
 		const response = await sut.handle(httpRequest);
 
 		expect(response.statusCode).toBe(400);
-		expect(response.body).toEqual(new MissingParamError('email'));
+		expect(response.body).toEqual('email is required');
 	});
 
 	it('should return 400 if no password is provided', async () => {
@@ -75,7 +73,7 @@ describe('SignInController', () => {
 		const response = await sut.handle(httpRequest);
 
 		expect(response.statusCode).toBe(400);
-		expect(response.body).toEqual(new MissingParamError('password'));
+		expect(response.body).toEqual('password is required');
 	});
 
 	it('should call EmailValidator with a correct email', async () => {
@@ -108,13 +106,13 @@ describe('SignInController', () => {
 		const response = await sut.handle(httpRequest);
 
 		expect(response.statusCode).toBe(400);
-		expect(response.body).toEqual(new InvalidParamError('email'));
+		expect(response.body).toEqual('email is invalid');
 	});
 
 	it('should return 500 if EmailValidator throws', async() => {
 		const { sut, emailValidatorStub } = makeSut();
 		jest.spyOn(emailValidatorStub, 'validate').mockImplementationOnce(() => {
-			throw new Error();
+			throw new InternalServerError();
 		});
 
 		const httpRequest = {
@@ -127,7 +125,7 @@ describe('SignInController', () => {
 		const response = await sut.handle(httpRequest);
 
 		expect(response.statusCode).toBe(500);
-		expect(response.body).toEqual(new InternalServerError());
+		expect(response.body).toEqual('internal server error');
 	});
 
 	it('should call SignInUseCase with correct values', async () => {
@@ -145,6 +143,6 @@ describe('SignInController', () => {
 		await sut.handle(httpRequest);
 
 		expect(signInSpy).toHaveBeenCalledTimes(1);
-		expect(signInSpy).toHaveBeenCalledWith({email: 'fake-mail@mail.com', password: 'fake-password'});
+		expect(signInSpy).toHaveBeenCalledWith({ email: 'fake-mail@mail.com', password: 'fake-password' });
 	});
 });
