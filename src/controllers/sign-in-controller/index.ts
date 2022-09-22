@@ -2,6 +2,7 @@ import { SignIn } from '../../domain/use-cases/sign-in/sign-in';
 import { InvalidParamError } from '../errors/invalid-param-error';
 import { MissingParamError } from '../errors/missing-param-error';
 import { error } from '../helpers/error';
+import { success } from '../helpers/success';
 import { Controller } from '../protocols/controller';
 import { HttpRequest } from '../protocols/httpRequest';
 import { HttpResponse } from '../protocols/httpResponse';
@@ -29,7 +30,7 @@ export class SignInController implements Controller {
 
 			const authenticatedUser = await this.signInUseCase.signIn({ email, password });
 
-			return authenticatedUser;
+			return success(authenticatedUser, 200);
 		} catch(err) {
 			return error(err);
 		}
