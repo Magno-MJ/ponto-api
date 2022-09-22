@@ -176,6 +176,31 @@ describe('SignInController', () => {
 	});
 
 	it('should return 400 if the password is wrong', async () => {
-		
+		const { sut, signInUseCaseStub } = makeSut();
+
+		jest.spyOn(signInUseCaseStub, 'signIn').mockImplementationOnce(() => {
+			class WrongDataError extends Error {
+				readonly statusCode: number;
+				constructor(data: string) {
+					super(`${data} is wrong`);
+					this.name = 'WrongDataError';
+					this.statusCode = 400;
+				}
+			}
+
+			throw new WrongDataError('password');
+		});
+
+		const httpRequest = {
+			body: {
+				email: 'fake-mail@mail.com',
+				password: 'fake-password'
+			}
+		};
+
+		const response = await sut.handle(httpRequest);
+
+		expect(response.statusCode).toBe(400);
+		expect(response.body).toBe('password is wrong');
 	});
 });
