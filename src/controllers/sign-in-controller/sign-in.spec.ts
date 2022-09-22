@@ -145,4 +145,37 @@ describe('SignInController', () => {
 		expect(signInSpy).toHaveBeenCalledTimes(1);
 		expect(signInSpy).toHaveBeenCalledWith({ email: 'fake-mail@mail.com', password: 'fake-password' });
 	});
+
+	it('should return 404 if no user was found', async () => {
+		const { sut, signInUseCaseStub } = makeSut();
+
+		jest.spyOn(signInUseCaseStub, 'signIn').mockImplementationOnce(() => {
+			class NotFoundError extends Error {
+				readonly statusCode: number;
+				constructor(entityName: string) {
+					super(`${entityName} not found`);
+					this.name = 'UserNotFoundError';
+					this.statusCode = 404;
+				}
+			}
+
+			throw new NotFoundError('user');
+		});
+
+		const httpRequest = {
+			body: {
+				email: 'fake-mail@mail.com',
+				password: 'fake-password'
+			}
+		};
+
+		const response = await sut.handle(httpRequest);
+
+		expect(response.statusCode).toBe(404);
+		expect(response.body).toBe('user not found');
+	});
+
+	it('should return 400 if the password is wrong', async () => {
+		
+	});
 });
