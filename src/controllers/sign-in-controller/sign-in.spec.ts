@@ -203,4 +203,23 @@ describe('SignInController', () => {
 		expect(response.statusCode).toBe(400);
 		expect(response.body).toBe('password is wrong');
 	});
+
+	it('should return 500 if SignInUseCase throws', async () => {
+		const { sut, signInUseCaseStub } = makeSut();
+		jest.spyOn(signInUseCaseStub, 'signIn').mockImplementationOnce(() => {
+			throw new InternalServerError();
+		});
+
+		const httpRequest = {
+			body: {
+				email: 'fake-mail@mail.com',
+				password: 'fake-password'
+			}
+		};
+
+		const response = await sut.handle(httpRequest);
+
+		expect(response.statusCode).toBe(500);
+		expect(response.body).toBe('internal server error');
+	});
 });
