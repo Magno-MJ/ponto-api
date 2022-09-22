@@ -222,4 +222,28 @@ describe('SignInController', () => {
 		expect(response.statusCode).toBe(500);
 		expect(response.body).toBe('internal server error');
 	});
+
+	it('should return the authenticated user data on success', async () => {
+
+		const { sut } = makeSut();
+
+		const httpRequest = {
+			body: {
+				email: 'fake-mail@mail.com',
+				password: 'fake-password'
+			}
+		};
+
+		const response = await sut.handle(httpRequest);
+
+		expect(response.statusCode).toBe(200);
+		expect(response.body).toEqual({
+			id: 'fake-id',
+			name: 'fake-name',
+			email: 'fake-mail@mail.com',
+			created_at: 'fake-date',
+			token: 'fake-token',
+			refresh_token: 'fake-refresh-token'
+		});
+	});
 });
