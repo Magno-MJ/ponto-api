@@ -1,4 +1,5 @@
 import { SignInUseCase } from '.';
+import { NotFoundError } from '../errors/not-found-error';
 import { UserRepository } from '../protocols/user-repository';
 
 function makeUserRepositoryStub(): UserRepository {
@@ -20,6 +21,7 @@ interface SutTypes {
   sut: SignInUseCase
   userRepositoryStub: UserRepository
 }
+
 function makeSut(): SutTypes {
 	const userRepositoryStub = makeUserRepositoryStub();
 	const sut = new SignInUseCase(userRepositoryStub);
@@ -41,5 +43,19 @@ describe('SignInUseCase', () => {
 
 		expect(findOneSpy).toHaveBeenCalledTimes(1);
 		expect(findOneSpy).toHaveBeenCalledWith('fake-mail@mail.com','fake-password');
+	});
+
+	it('should throw 404 if no user was found', async () => {
+		const { sut, userRepositoryStub } = makeSut();
+		jest.spyOn(userRepositoryStub, 'findOne').mockResolvedValueOnce(undefined as any);
+
+    
+		const userData = {
+			email: 'fake-mail@mail.com',
+			password: 'fake-password'
+		};
+
+		const response = sut.signIn(userData);
+		await expect(response).rejects.toEqual(new NotFoundError('user'));
 	});
 });
